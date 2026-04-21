@@ -1,6 +1,7 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, SafeAreaView, ScrollView, Alert, Modal, TextInput } from 'react-native'
+import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Alert, Modal, TextInput } from 'react-native'
 import React, { useState } from 'react'
 import { localDb } from '../database/localDb'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 
 import { Colors } from '../constants/Colors'

@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, Image, Scro
 import { useState } from 'react';
 import { Colors } from '../../constants/Colors';
 import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Index() {
   const [nominal, setNominal] = useState("");
@@ -26,7 +27,7 @@ export default function Index() {
   ];
 
   return (
-    <View style={styles.container} animated={'fade'}>
+    <SafeAreaView style={styles.container} animated={'fade'}>
       <View style={styles.logoContainer}>
         <Text style={styles.title}>STEIWealth</Text>
         <Image style={styles.logo} source={require('../../assets/images/steiwealth.png')}></Image>
@@ -90,7 +91,7 @@ export default function Index() {
         </View>
       </View>
 
-    </View >
+    </SafeAreaView >
   );
 }
 
