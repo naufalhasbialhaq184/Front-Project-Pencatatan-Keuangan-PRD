@@ -16,4 +16,3 @@ export const initLocalDb = () => {
     `)
 }
 
-console.log(`${FileSystem.documentDirectory}SQLite/Projek-keuangan.db`);

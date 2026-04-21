@@ -29,36 +29,42 @@ const category = () => {
         { label: "Housing", value: require("../assets/images/category/housing.png") },
         { label: "Other", value: require("../assets/images/category/other.png") },
     ]
-    const handleSubmitOn = async () => {
-        try {
-            await fetch("https://backend-catat-uang-production-3128.up.railway.app/pengeluaran", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    Nominal: parseInt(amount),
-                    Keterangan: keterangan,
-                    Kategori: kategori,
-                }),
-            });
+    // const handleSubmitOn = async () => {
+    //     try {
+    //         await fetch("https://backend-catat-uang-production-3128.up.railway.app/pengeluaran", {
+    //             method: "POST",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //             },
+    //             body: JSON.stringify({
+    //                 Nominal: parseInt(amount),
+    //                 Keterangan: keterangan,
+    //                 Kategori: kategori,
+    //             }),
+    //         });
 
+    //         Alert.alert("Success", "Expense added successfully");
+    //         router.back();
+    //     } catch (error) {
+    //         console.log(error.message);
+    //     }
+
+    // }
+
+    const handleSubmitLocal = async () => {
+        try {
+            await localDb.runAsync('INSERT INTO pengeluaran (Nominal, Kategori, Keterangan) VALUES (?, ?, ?)', Number(amount), kategori, keterangan)
             Alert.alert("Success", "Expense added successfully");
             router.back();
         } catch (error) {
-            console.log(error.message);
+            console.log(error.message)
         }
-
     }
-
-    // const handleSubmitLocal = () => {
-    //     localDb.runSync('INSERT INTO pengeluaran (Nominal, Kategori ,Keterangan) VALUES ($1, $2, $3) RETURNING *', [amount, kategori, keterangan])
-    // }
 
     return (
         <SafeAreaView style={styles.safeArea}>
 
-            <Modal   
+            <Modal
                 animationType="fade"
                 transparent={true}
                 visible={modalVisible}
@@ -93,8 +99,8 @@ const category = () => {
                                 onPress={() => {
                                     setModalVisible(false)
 
-                                    handleSubmitOn()
-                                    // handleSubmitLocal()
+                                    // handleSubmitOn()
+                                    handleSubmitLocal()
                                     setKategori("")
                                     setKeterangan("")
 

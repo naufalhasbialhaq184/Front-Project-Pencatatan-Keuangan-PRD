@@ -18,10 +18,10 @@ export default function SQLiteInspector() {
     return (
         <View style={styles.container}>
             <Button title="🔄 Refresh & Cek Data SQLite" onPress={refreshData} color="#4CAF50" />
-            {/* <Button title="reset" onPress={() => {
+            <Button title="reset" onPress={() => {
                 localDb.execSync('DROP TABLE IF EXISTS pengeluaran;');
                 Alert.alert("Success", "Database reset successfully Restart apk")
-            }}></Button> */}
+            }}></Button>
 
 
 
