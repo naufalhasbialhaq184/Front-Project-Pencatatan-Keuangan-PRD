@@ -9,6 +9,6 @@ const history = () => {
     )
 }
 
-export default history
+export default history;
 
 const styles = StyleSheet.create({})

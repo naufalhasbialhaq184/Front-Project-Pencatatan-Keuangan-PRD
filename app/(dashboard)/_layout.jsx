@@ -10,4 +10,6 @@ export default function RootLayout() {
       <Tabs.Screen name="setting" options={{ title: "Setting" }} />
     </Tabs>
   )
+  
 }
+

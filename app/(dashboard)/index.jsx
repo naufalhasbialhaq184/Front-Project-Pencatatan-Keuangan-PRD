@@ -12,6 +12,7 @@ export default function Index() {
     const numberString = angka.toString().replace(/[^0-9]/g, '');
     return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
+  
   const nominalButtons = [
     { label: '1', value: '1' },
     { label: '5', value: '5' },

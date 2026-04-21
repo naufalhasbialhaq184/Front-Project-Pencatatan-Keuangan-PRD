@@ -12,6 +12,7 @@ const setting = () => {
     )
 }
 
-export default setting
+export default setting;
+
 
 const styles = StyleSheet.create({})

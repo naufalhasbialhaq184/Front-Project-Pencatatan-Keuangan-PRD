@@ -9,6 +9,6 @@ const planning = () => {
     )
 }
 
-export default planning
+export default planning;
 
 const styles = StyleSheet.create({})
