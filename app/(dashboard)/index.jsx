@@ -4,29 +4,24 @@ import { Colors } from '../../constants/Colors';
 import { router } from 'expo-router';
 
 export default function Index() {
-  const [nominal, setNominal] = useState('');
+  const [nominal, setNominal] = useState("");
 
 
-  // const handleNominal = (nominal) => {
-  //   let harga = Number(temp)
-  //   harga = harga + setNominal(nominal)
-  //   temp = harga.toString()
-  //   return temp;
-  // }
-
+  const formatRupiah = (angka) => {
+    if (!angka) return "";
+    const numberString = angka.toString().replace(/[^0-9]/g, '');
+    return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
   const nominalButtons = [
-    { label: '10 K', value: '10000' },
-    { label: '20 K', value: '20000' },
-    { label: '30 K', value: '30000' },
-    { label: '40 K', value: '40000' },
-    { label: '50 K', value: '50000' },
-    { label: '60 K', value: '60000' },
-    { label: '70 K', value: '70000' },
-    { label: '80 K', value: '80000' },
-    { label: '90 K', value: '90000' },
-    { label: '100 K', value: '100000' },
-    { label: '150 K', value: '150000' },
-    { label: '200 K', value: '200000' },
+    { label: '1', value: '1' },
+    { label: '5', value: '5' },
+    { label: '10', value: '10' },
+    { label: '100', value: '100' },
+    { label: '1.000', value: '1000' },
+    { label: '5.000', value: '5000' },
+    { label: '10.000', value: '10000' },
+    { label: '50.000', value: '50000' },
+    { label: '100.000', value: '100000' },
   ];
 
   return (
@@ -49,8 +44,11 @@ export default function Index() {
             placeholder="0"
             placeholderTextColor="#cbd5e1"
             keyboardType="numeric"
-            value={nominal}
-            onChangeText={setNominal}
+            value={formatRupiah(nominal)}
+            onChangeText={(text) => {
+              const rawValue = text.replace(/[^0-9]/g, '');
+              setNominal(rawValue);
+            }}
             style={styles.textInput}
           />
 
@@ -74,15 +72,21 @@ export default function Index() {
             key={index}
             style={styles.buttonNominalItem}
             onPress={() => {
-              // setNominal(item.value)
-              router.push({ pathname: '/category', params: { amount: item.value } });
-              setNominal("")
+              setNominal(prev => {
+                const NominalSekarang = Number(prev) || 0;
+                return (NominalSekarang + Number(item.value)).toString()
+              })
             }
-          }
+            }
           >
             <Text style={styles.buttonNominalText}>{item.label}</Text>
           </TouchableOpacity>
         ))}
+        <View style={{ width: '100%', alignItems: 'center' }}>
+          <TouchableOpacity style={{ backgroundColor: "white", width: '31%', justifyContent: 'center', alignItems: 'center', borderRadius: 16, paddingVertical: 16, marginBottom: 12, }}
+            onPress={() => setNominal("")}
+          ><Text style={{ fontWeight: 'bold' }}>Reset</Text></TouchableOpacity>
+        </View>
       </View>
 
     </View >
