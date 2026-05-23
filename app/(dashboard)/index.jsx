@@ -41,7 +41,6 @@ export default function Index() {
         </View>
         <View style={styles.headerTextContainer}>
           <Text style={styles.addExpense}>Add Expense</Text>
-          <Text style={styles.EnterAmount}>Enter Amount</Text>
         </View>
 
         <View style={styles.containerInput}>
