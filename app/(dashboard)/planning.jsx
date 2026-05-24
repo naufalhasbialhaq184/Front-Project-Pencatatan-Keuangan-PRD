@@ -1,6 +1,7 @@
-import { localDb } from "../../database/localDb";
-import { Stack } from "expo-router";
-import { useEffect, useState } from "react";
+import { localDb, getDynamicGradient } from "../../database/localDb";
+import { Stack, useFocusEffect } from "expo-router";
+import { LinearGradient } from 'expo-linear-gradient';
+import { useCallback, useState } from "react";
 import {
     SafeAreaView,
     ScrollView,
@@ -34,10 +35,15 @@ const Planning = () => {
 
   const [categories, setCategories] = useState(defaultCategories);
 
-  useEffect(() => {
-    loadBudget();
-    loadCategories();
-  }, []);
+  const [bgGradient, setBgGradient] = useState(['#00057aff', '#131d32']);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadBudget();
+      loadCategories();
+      setBgGradient(getDynamicGradient());
+    }, [])
+  );
 
   const updateCategory = (id, value) => {
     setCategories((prev) =>
@@ -115,13 +121,13 @@ const Planning = () => {
           contentContainerStyle={{ paddingBottom: 40 }}
         >
           {/* HEADER */}
-          <View style={styles.header}>
+          <LinearGradient colors={bgGradient} style={styles.header}>
             <Text style={styles.headerTitle}>Financial Planning</Text>
 
             <Text style={styles.headerSubtitle}>
               Kelola anggaran dan capai tujuan keuangan Anda
             </Text>
-          </View>
+          </LinearGradient>
 
           {/* TAB */}
           <View style={styles.tabContainer}>
@@ -278,7 +284,6 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    backgroundColor: "#071B4B",
     paddingTop: 40,
     paddingBottom: 80,
     paddingHorizontal: 24,

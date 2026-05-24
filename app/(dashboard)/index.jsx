@@ -1,13 +1,21 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { useFocusEffect, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { getDynamicGradient } from '../../database/localDb';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 
 export default function Index() {
   const [nominal, setNominal] = useState("");
+  const [bgGradient, setBgGradient] = useState(['#00057aff', '#131d32']);
+
+  useFocusEffect(
+    useCallback(() => {
+      setBgGradient(getDynamicGradient());
+    }, [])
+  );
 
 
   const formatRupiah = (angka) => {
@@ -30,7 +38,7 @@ export default function Index() {
 
   return (
     <LinearGradient
-      colors={['#131d32', '#1e40af']} // Top primary navy to bottom sapphire blue (reversed!)
+      colors={bgGradient} // Top primary navy to bottom sapphire blue (reversed!)
       style={styles.gradientContainer}
     >
       <StatusBar style="light" />

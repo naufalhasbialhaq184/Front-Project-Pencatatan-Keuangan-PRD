@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar'
 import { useCallback, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { localDb } from '../../database/localDb'
+import { localDb, getDynamicGradient } from '../../database/localDb';
 
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -67,6 +67,7 @@ const History = () => {
   const [monthlyExpense, setMonthlyExpense] = useState(0);
   const [weeklyExpense, setWeeklyExpense] = useState(0);
   const [todaysExpense, setTodaysExpense] = useState(0);
+  const [bgGradient, setBgGradient] = useState(['#00057aff', '#131d32']);
 
   const fetchData = async () => {
     try {
@@ -144,6 +145,7 @@ const History = () => {
   useFocusEffect(
     useCallback(() => {
       fetchData();
+      setBgGradient(getDynamicGradient());
     }, [])
   );
 
@@ -153,11 +155,11 @@ const History = () => {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Dark Blue Gradient Header container with the 3 boxes */}
         <LinearGradient
-          colors={['#1e40af', '#131d32']} // Top sapphire blue to bottom primary navy
+          colors={bgGradient}
           style={styles.headerContainer}
         >
           <Text style={styles.headerTitle}>Transaction History</Text>
-          <Text style={styles.headerSubtitle}>All your financial activity</Text>
+          <Text style={styles.headerSubtitle}></Text>
 
           <View style={styles.metricsContainer}>
             {/* Monthly Expense Card */}

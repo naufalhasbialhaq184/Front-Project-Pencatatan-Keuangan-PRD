@@ -1,13 +1,13 @@
 import { useFocusEffect, router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
-import { localDb } from '../../database/localDb';
+import { localDb, getDynamicGradient } from '../../database/localDb';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 const SLIDE_WIDTH = width - 32; // Lebar layar dikurangi margin horizontal
 
-// Palet warna untuk kategori
-const CATEGORY_COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6'];
+
 
 // Mapping angka bulan ke nama bulan singkat
 const MONTH_NAMES = {
@@ -22,6 +22,7 @@ const Dashboard = () => {
   const [monthlyTrendData, setMonthlyTrendData] = useState([]); // State untuk Bar Chart Bulanan
   const [budgetTarget, setBudgetTarget] = useState(0);
   const [categoryBudgets, setCategoryBudgets] = useState({});
+  const [bgGradient, setBgGradient] = useState(['#00057aff', '#131d32']);
 
   const formatRupiah = (angka) => 'Rp ' + Math.floor(angka).toLocaleString('id-ID');
 
@@ -99,6 +100,8 @@ const Dashboard = () => {
       });
       setCategoryBudgets(catBudgetMap);
 
+      setBgGradient(getDynamicGradient());
+
     } catch (error) {
       console.error("Gagal memuat statistik database:", error);
     }
@@ -128,13 +131,13 @@ const Dashboard = () => {
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
 
       {/* HEADER NAVY */}
-      <View style={styles.headerSection}>
+      <LinearGradient colors={bgGradient} style={styles.headerSection}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={styles.headerTitle}>STEIWealth</Text>
-          <Image style={{ width: 24, height: 24, marginLeft: 8 }} source={require('../../assets/images/steiwealth.png')} resizeMode="contain" />
+          <Image style={{ width: 30, height: 30, marginLeft: 8, marginTop: 8 }} source={require('../../assets/images/steiwealth.png')} resizeMode="contain" />
         </View>
         <Text style={styles.headerSubtitle}>Overview {currentMonthName} {currentYear}</Text>
-      </View>
+      </LinearGradient>
 
 
       {/* CARD BESAR: MONTHLY EXPENSE */}
@@ -309,7 +312,6 @@ export default Dashboard;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   headerSection: {
-    backgroundColor: '#192231',
     paddingHorizontal: 20, paddingTop: 30, paddingBottom: 65,
   },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
