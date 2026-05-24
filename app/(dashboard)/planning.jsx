@@ -1,15 +1,15 @@
 import { localDb, getDynamicGradient } from "../../database/localDb";
 import { Stack, useFocusEffect } from "expo-router";
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCallback, useState } from "react";
 import {
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const tabs = ["Budget", "Categories"];
