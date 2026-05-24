@@ -1,6 +1,6 @@
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, router } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import { localDb } from '../../database/localDb';
 
 const { width } = Dimensions.get('window');
@@ -20,11 +20,11 @@ const Dashboard = () => {
   const [lastMonthExpense, setLastMonthExpense] = useState(0);
   const [categoriesData, setCategoriesData] = useState([]);
   const [monthlyTrendData, setMonthlyTrendData] = useState([]); // State untuk Bar Chart Bulanan
-
-  const budgetTarget = 3000000;
+  const [budgetTarget, setBudgetTarget] = useState(0);
+  const [categoryBudgets, setCategoryBudgets] = useState({});
 
   const formatRupiah = (angka) => 'Rp ' + Math.floor(angka).toLocaleString('id-ID');
-  
+
   // Format angka singkat untuk label diagram batang (Contoh: 1.5 Jt / 500K)
   const formatShortRupiah = (angka) => {
     if (angka >= 1000000) return (angka / 1000000).toFixed(1) + 'Jt';
@@ -40,10 +40,21 @@ const Dashboard = () => {
 
   const loadDashboardStats = () => {
     try {
+      const now = new Date();
+      const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+      let lastMonthYear = now.getFullYear();
+      let lastMonthNum = now.getMonth(); // 0 is January, previous is Dec
+      if (lastMonthNum === 0) {
+        lastMonthNum = 12;
+        lastMonthYear -= 1;
+      }
+      const lastMonthStr = `${lastMonthYear}-${String(lastMonthNum).padStart(2, '0')}`;
+
       // 1. Pengeluaran Bulan Ini
       const thisMonthResult = localDb.getAllSync(`
         SELECT SUM(Nominal) as total FROM pengeluaran 
-        WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+        WHERE strftime('%Y-%m', created_at, 'localtime') = '${currentMonthStr}'
       `);
       const totalThisMonth = thisMonthResult[0]?.total || 0;
       setMonthlyExpense(totalThisMonth);
@@ -51,7 +62,7 @@ const Dashboard = () => {
       // 2. Pengeluaran Bulan Lalu
       const lastMonthResult = localDb.getAllSync(`
         SELECT SUM(Nominal) as total FROM pengeluaran 
-        WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now', '-1 month')
+        WHERE strftime('%Y-%m', created_at, 'localtime') = '${lastMonthStr}'
       `);
       const totalLastMonth = lastMonthResult[0]?.total || 0;
       setLastMonthExpense(totalLastMonth);
@@ -59,7 +70,7 @@ const Dashboard = () => {
       // 3. Distribusi per Kategori Bulan Ini
       const distributionResult = localDb.getAllSync(`
         SELECT Kategori, SUM(Nominal) as totalNominal FROM pengeluaran
-        WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+        WHERE strftime('%Y-%m', created_at, 'localtime') = '${currentMonthStr}'
         GROUP BY Kategori
         ORDER BY totalNominal DESC
       `);
@@ -67,14 +78,26 @@ const Dashboard = () => {
 
       // 4. Data Trend Bulanan untuk Bar Chart (Ambil max 6 bulan terakhir)
       const trendResult = localDb.getAllSync(`
-        SELECT strftime('%m', created_at) as monthNum, SUM(Nominal) as total 
+        SELECT strftime('%m', created_at, 'localtime') as monthNum, SUM(Nominal) as total 
         FROM pengeluaran 
-        GROUP BY strftime('%Y-%m', created_at)
-        ORDER BY strftime('%Y-%m', created_at) DESC
+        GROUP BY strftime('%Y-%m', created_at, 'localtime')
+        ORDER BY strftime('%Y-%m', created_at, 'localtime') DESC
         LIMIT 6
       `);
       // Reverse array agar urutannya kronologis (Kiri=Lama, Kanan=Baru)
       setMonthlyTrendData(trendResult.reverse() || []);
+
+      // 5. Budget bulanan
+      const budgetResult = localDb.getFirstSync("SELECT amount FROM budget_monthly WHERE id = 1");
+      if (budgetResult) setBudgetTarget(budgetResult.amount);
+
+      // 6. Limit per kategori
+      const catBudgetResult = localDb.getAllSync("SELECT * FROM budget_category");
+      const catBudgetMap = {};
+      catBudgetResult.forEach(item => {
+        catBudgetMap[item.category] = item.amount;
+      });
+      setCategoryBudgets(catBudgetMap);
 
     } catch (error) {
       console.error("Gagal memuat statistik database:", error);
@@ -84,30 +107,42 @@ const Dashboard = () => {
   const spendingPercentage = budgetTarget > 0 ? (monthlyExpense / budgetTarget) * 100 : 0;
   const remainingBudget = budgetTarget - monthlyExpense;
   const differenceExpense = monthlyExpense - lastMonthExpense;
-  
+
   let differencePercentage = 0;
   if (lastMonthExpense > 0) differencePercentage = (differenceExpense / lastMonthExpense) * 100;
 
   // Mencari nilai tertinggi untuk skala tinggi Bar Chart
-  const maxTrendValue = monthlyTrendData.length > 0 
-    ? Math.max(...monthlyTrendData.map(d => d.total)) 
+  const maxTrendValue = monthlyTrendData.length > 0
+    ? Math.max(...monthlyTrendData.map(d => d.total))
     : 1;
 
+  const now = new Date();
+  const currentMonthName = MONTH_NAMES[String(now.getMonth() + 1).padStart(2, '0')];
+  const currentYear = now.getFullYear();
+
+  let prevMonthNum = now.getMonth();
+  if (prevMonthNum === 0) prevMonthNum = 12;
+  const prevMonthName = MONTH_NAMES[String(prevMonthNum).padStart(2, '0')];
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
+
       {/* HEADER NAVY */}
       <View style={styles.headerSection}>
-        <Text style={styles.headerTitle}>STEIWealth</Text>
-        <Text style={styles.headerSubtitle}>📅 Overview March 2026</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={styles.headerTitle}>STEIWealth</Text>
+          <Image style={{ width: 24, height: 24, marginLeft: 8 }} source={require('../../assets/images/steiwealth.png')} resizeMode="contain" />
+        </View>
+        <Text style={styles.headerSubtitle}>Overview {currentMonthName} {currentYear}</Text>
       </View>
+
 
       {/* CARD BESAR: MONTHLY EXPENSE */}
       <View style={styles.cardContainerRow}>
         <View style={styles.largeExpenseCard}>
           <View style={styles.cardHeaderRow}>
             <Text style={styles.cardLabel}>MONTHLY EXPENSE (CURRENT)</Text>
-            <Text style={{ fontSize: 18 }}>📉</Text>
+            <Text style={{ fontSize: 18 }}></Text>
           </View>
           <Text style={styles.largeCardValue}>{formatRupiah(monthlyExpense)}</Text>
         </View>
@@ -115,22 +150,22 @@ const Dashboard = () => {
 
       {/* BLOK TENGAH (POSISI DITUKAR) */}
       <View style={styles.middleSectionRow}>
-        
+
         {/* KIRI: MONTH COMPARISON (DIPERSINGKAT) */}
         <View style={styles.whiteCardLeft}>
           <Text style={styles.sectionTitleBlack}>Month Compare</Text>
           <View style={{ marginTop: 12, gap: 10 }}>
             <View>
-              <Text style={styles.compareLabel}>Last Month</Text>
+              <Text style={styles.compareLabel}>{prevMonthName}</Text>
               <Text style={styles.compareValue}>{formatRupiah(lastMonthExpense)}</Text>
             </View>
             <View>
-              <Text style={styles.compareLabel}>This Month</Text>
+              <Text style={styles.compareLabel}>{currentMonthName}</Text>
               <Text style={styles.compareValue}>{formatRupiah(monthlyExpense)}</Text>
             </View>
-            <View style={[styles.diffBox, { backgroundColor: differenceExpense > 0 ? '#fef2f2' : '#f0fdf4' }]}>
-              <Text style={styles.compareLabel}>Difference</Text>
-              <Text style={[styles.compareValue, { color: differenceExpense > 0 ? '#ef4444' : '#16a34a' }]}>
+            <View style={[styles.diffBox, { backgroundColor: differenceExpense > 0 ? '#ef4444' : '#10b981' }]}>
+              <Text style={[styles.compareLabel, { color: '#ffffff' }]}>Difference</Text>
+              <Text style={[styles.compareValue, { color: '#ffffff' }]}>
                 {differenceExpense >= 0 ? '+' : ''}{differencePercentage.toFixed(1)}%
               </Text>
             </View>
@@ -143,7 +178,7 @@ const Dashboard = () => {
             <Text style={styles.sectionTitleBlack}>Budget Target</Text>
             <Text style={{ fontSize: 14 }}>🎯</Text>
           </View>
-          
+
           <View style={styles.budgetProgressRow}>
             <Text style={styles.spendingLabel}>Monthly Spending</Text>
             <Text style={styles.percentageText}>{spendingPercentage.toFixed(1)}%</Text>
@@ -164,9 +199,9 @@ const Dashboard = () => {
             </Text>
           </View>
 
-          <View style={styles.manageBtn}>
+          <TouchableOpacity style={styles.manageBtn} onPress={() => router.push('/planning')}>
             <Text style={styles.manageBtnText}>Manage Budget</Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -176,62 +211,70 @@ const Dashboard = () => {
           <Text style={styles.sectionTitleBlack}>Analytics (Swipe ↔)</Text>
           <Text style={{ fontSize: 12, color: '#94a3b8' }}>● ●</Text>
         </View>
-        
-        <ScrollView 
-          horizontal 
-          pagingEnabled 
+
+        <ScrollView
+          horizontal
+          pagingEnabled
           showsHorizontalScrollIndicator={false}
           snapToInterval={SLIDE_WIDTH}
           decelerationRate="fast"
         >
-          
+
           {/* SLIDE 1: EXPENSE DISTRIBUTION (HORIZONTAL SEGMENTED BAR) */}
           <View style={styles.slidePage}>
             <Text style={styles.slideTitle}>Category Distribution</Text>
-            
+
             {categoriesData.length === 0 ? (
               <View style={styles.emptyStateContainer}>
                 <Text style={styles.emptyStateText}>No data available</Text>
               </View>
             ) : (
-              <View style={{ marginTop: 10 }}>
-                {/* Horizontal Segmented Progress Bar (Pengganti Pie Chart Bebas Bug) */}
-                <View style={styles.segmentedBarContainer}>
-                  {categoriesData.map((item, index) => {
-                    const widthPercent = (item.totalNominal / monthlyExpense) * 100;
-                    return (
-                      <View 
-                        key={index} 
-                        style={[styles.segmentBlock, { width: `${widthPercent}%`, backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }]} 
-                      />
-                    );
-                  })}
-                </View>
+              <ScrollView style={{ marginTop: 10, maxHeight: 250 }} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
+                {categoriesData.map((item, index) => {
+                  const limit = categoryBudgets[item.Kategori] || 0;
+                  const percentage = limit > 0 ? (item.totalNominal / limit) * 100 : 0;
+                  // Jika limit 0 tapi ada pengeluaran, anggap 100% overlimit
+                  const displayPercentage = limit === 0 && item.totalNominal > 0 ? 100 : percentage;
 
-                {/* Legend Kategori */}
-                <ScrollView style={styles.legendScroll} showsVerticalScrollIndicator={false}>
-                  {categoriesData.map((item, index) => {
-                    const categoryColor = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
-                    const percentage = monthlyExpense > 0 ? ((item.totalNominal / monthlyExpense) * 100).toFixed(1) : 0;
-                    return (
-                      <View key={index} style={styles.legendItem}>
-                        <View style={[styles.colorIndicatorDot, { backgroundColor: categoryColor }]} />
-                        <View style={styles.legendTextWrapper}>
-                          <Text style={styles.legendLabelText} numberOfLines={1}>{item.Kategori}</Text>
-                          <Text style={styles.legendPercentText}>{percentage}%  <Text style={styles.legendSubValue}>({formatRupiah(item.totalNominal)})</Text></Text>
-                        </View>
+                  let barColor = '#3b82f6'; // Biru (< 50%)
+                  if (displayPercentage >= 75) {
+                    barColor = '#ef4444'; // Merah
+                  } else if (displayPercentage >= 50) {
+                    barColor = '#facc15'; // Kuning
+                  }
+
+                  return (
+                    <View key={index} style={{ marginBottom: 14 }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <Text style={{ fontSize: 13, fontWeight: 'bold', color: '#4b5563' }}>{item.Kategori}</Text>
+                        <Text style={{ fontSize: 12, color: '#64748b' }}>
+                          {formatRupiah(item.totalNominal)} <Text style={{ color: '#94a3b8' }}>/ {formatRupiah(limit)}</Text>
+                        </Text>
                       </View>
-                    );
-                  })}
-                </ScrollView>
-              </View>
+
+                      <View style={{ height: 8, backgroundColor: '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
+                        <View style={{
+                          height: '100%',
+                          backgroundColor: barColor,
+                          width: `${Math.min(displayPercentage, 100)}%`
+                        }} />
+                      </View>
+                      {displayPercentage > 100 && (
+                        <Text style={{ fontSize: 10, color: '#ef4444', marginTop: 4, textAlign: 'right' }}>
+                          Over limit!
+                        </Text>
+                      )}
+                    </View>
+                  );
+                })}
+              </ScrollView>
             )}
           </View>
 
           {/* SLIDE 2: MONTHLY TREND (BAR CHART) */}
           <View style={styles.slidePage}>
             <Text style={styles.slideTitle}>Monthly Expenses Trend</Text>
-            
+
             {monthlyTrendData.length === 0 ? (
               <View style={styles.emptyStateContainer}>
                 <Text style={styles.emptyStateText}>No trend data yet</Text>
@@ -266,12 +309,12 @@ export default Dashboard;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
   headerSection: {
-    backgroundColor: '#192231', 
+    backgroundColor: '#192231',
     paddingHorizontal: 20, paddingTop: 30, paddingBottom: 65,
   },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   headerSubtitle: { fontSize: 13, color: '#94a3b8', marginTop: 4 },
-  
+
   cardContainerRow: { paddingHorizontal: 16, marginTop: -40 },
   largeExpenseCard: {
     backgroundColor: '#242e42', width: '100%', borderRadius: 16, padding: 18, elevation: 5,
@@ -290,7 +333,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff', width: '48%', borderRadius: 14, padding: 14, elevation: 2,
   },
   sectionTitleBlack: { fontSize: 13, fontWeight: 'bold', color: '#1f2937', marginBottom: 4 },
-  
+
   /* Month Compare Mini */
   compareLabel: { fontSize: 10, color: '#64748b', marginBottom: 2 },
   compareValue: { fontSize: 13, fontWeight: 'bold', color: '#1f2937' },
@@ -329,7 +372,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   slideTitle: { fontSize: 11, color: '#64748b', fontWeight: '500', marginBottom: 10 },
-  
+
   /* Horizontal Segmented Bar (Distribution) */
   segmentedBarContainer: {
     height: 14,
@@ -354,7 +397,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'flex-end',
-    height: 150,
+    height: 250,
     marginTop: 10,
   },
   barColumn: { alignItems: 'center', width: 40 },
@@ -362,7 +405,7 @@ const styles = StyleSheet.create({
   barTrack: { height: 100, width: 20, backgroundColor: '#f1f5f9', borderRadius: 6, justifyContent: 'flex-end', overflow: 'hidden' },
   barFillDynamic: { width: '100%', backgroundColor: '#3b82f6', borderRadius: 6 },
   barMonthText: { fontSize: 10, color: '#4b5563', marginTop: 8, fontWeight: '500' },
-  
+
   emptyStateContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 100 },
   emptyStateText: { color: '#94a3b8', fontSize: 12 },
 });
