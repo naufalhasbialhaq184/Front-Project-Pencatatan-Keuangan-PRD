@@ -25,15 +25,15 @@ export default function Index() {
   }
 
   const nominalButtons = [
-    { label: '1', value: '1' },
-    { label: '5', value: '5' },
-    { label: '10', value: '10' },
-    { label: '100', value: '100' },
+    { label: '500', value: '500' },
     { label: '1.000', value: '1000' },
+    { label: '2.000', value: '2000' },
     { label: '5.000', value: '5000' },
     { label: '10.000', value: '10000' },
+    { label: '20.000', value: '20000' },
     { label: '50.000', value: '50000' },
     { label: '100.000', value: '100000' },
+    { label: '200.000', value: '200000' },
   ];
 
   return (
