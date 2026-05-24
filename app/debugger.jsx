@@ -5,7 +5,7 @@ import { localDb } from '../database/localDb';
 
 export default function SQLiteInspector() {
     const [data, setData] = useState([]);
-    
+
     const [nominal, setNominal] = useState('');
     const [kategori, setKategori] = useState('Food');
     const [keterangan, setKeterangan] = useState('Data Injeksi');
@@ -17,7 +17,7 @@ export default function SQLiteInspector() {
         prevYear -= 1;
     }
     const defaultDate = `${prevYear}-${String(prevMonth).padStart(2, '0')}-15 10:00:00`;
-    
+
     const [tanggal, setTanggal] = useState(defaultDate); // YYYY-MM-DD HH:MM:SS
 
     const refreshData = () => {
@@ -52,31 +52,33 @@ export default function SQLiteInspector() {
             "Yakin ingin menghapus semua data (pengeluaran, budget bulanan, budget kategori)?",
             [
                 { text: "Batal", style: "cancel" },
-                { text: "Reset", onPress: () => {
-                    try {
-                        localDb.execSync(`
+                {
+                    text: "Reset", onPress: () => {
+                        try {
+                            localDb.execSync(`
                             DROP TABLE IF EXISTS pengeluaran;
                             DROP TABLE IF EXISTS budget_monthly;
                             DROP TABLE IF EXISTS budget_category;
                         `);
-                        Alert.alert("Success", "Semua tabel berhasil direset. Silakan restart aplikasi/reload.");
-                        setData([]);
-                    } catch (error) {
-                        Alert.alert("Error", error.message);
-                    }
-                }, style: "destructive" }
+                            Alert.alert("Success", "Semua tabel berhasil direset. Silakan restart aplikasi/reload.");
+                            setData([]);
+                        } catch (error) {
+                            Alert.alert("Error", error.message);
+                        }
+                    }, style: "destructive"
+                }
             ]
         );
     };
 
     return (
         <ScrollView style={styles.container}>
-            <Text style={{fontSize: 18, fontWeight: 'bold', marginBottom: 10}}>Injeksi Data Pengeluaran</Text>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>Injeksi Data Pengeluaran</Text>
             <TextInput style={styles.input} placeholder="Nominal (Cth: 50000)" value={nominal} onChangeText={setNominal} keyboardType="numeric" />
             <TextInput style={styles.input} placeholder="Kategori (Cth: Food, Transport)" value={kategori} onChangeText={setKategori} />
             <TextInput style={styles.input} placeholder="Keterangan" value={keterangan} onChangeText={setKeterangan} />
             <TextInput style={styles.input} placeholder="Tanggal (YYYY-MM-DD HH:MM:SS)" value={tanggal} onChangeText={setTanggal} />
-            
+
             <View style={{ marginBottom: 20 }}>
                 <Button title="Injeksi Data" onPress={handleInject} color="#2196F3" />
             </View>
@@ -86,7 +88,7 @@ export default function SQLiteInspector() {
                 <Button title="Reset Semua" onPress={handleReset} color="#F44336" />
             </View>
 
-            <Text style={{fontWeight: 'bold'}}>Data Pengeluaran (Terbaru di atas):</Text>
+            <Text style={{ fontWeight: 'bold' }}>Data Pengeluaran (Terbaru di atas):</Text>
 
             <View style={styles.scroll}>
                 {data.length === 0 ? (
