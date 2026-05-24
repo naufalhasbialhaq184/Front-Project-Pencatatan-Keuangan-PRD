@@ -12,7 +12,15 @@ export const initLocalDb = () => {
         Kategori VARCHAR(30),
         Keterangan VARCHAR(60),
         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
+    );
+    CREATE TABLE IF NOT EXISTS budget_monthly (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        amount REAL DEFAULT 0
+    );
+    CREATE TABLE IF NOT EXISTS budget_category (
+        category TEXT PRIMARY KEY,
+        amount REAL DEFAULT 0
+    );
     `)
 }
 

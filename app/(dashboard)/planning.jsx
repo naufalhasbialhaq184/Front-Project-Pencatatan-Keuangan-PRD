@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { localDb } from "../../database/localDb";
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -18,14 +18,21 @@ const Planning = () => {
 
   const [monthlyBudget, setMonthlyBudget] = useState("0");
 
-  const [categories, setCategories] = useState([
-    { id: 1, name: "Makanan", amount: "0", icon: "🍔" },
-    { id: 2, name: "Transportasi", amount: "0", icon: "🚗" },
-    { id: 3, name: "Hiburan", amount: "0", icon: "🎮" },
-    { id: 4, name: "Tagihan", amount: "0", icon: "💡" },
-    { id: 5, name: "Kesehatan", amount: "0", icon: "🏥" },
-    { id: 6, name: "Belanja", amount: "0", icon: "🛍️" },
-  ]);
+  const defaultCategories = [
+    { id: "Food", name: "Food", amount: "0", icon: "🍔" },
+    { id: "Transport", name: "Transport", amount: "0", icon: "🚗" },
+    { id: "Utilities", name: "Utilities", amount: "0", icon: "💡" },
+    { id: "Entertainment", name: "Entertainment", amount: "0", icon: "🎮" },
+    { id: "Health", name: "Health", amount: "0", icon: "🏥" },
+    { id: "Shopping", name: "Shopping", amount: "0", icon: "🛍️" },
+    { id: "Education", name: "Education", amount: "0", icon: "📚" },
+    { id: "Technology", name: "Technology", amount: "0", icon: "💻" },
+    { id: "Gift", name: "Gift", amount: "0", icon: "🎁" },
+    { id: "Housing", name: "Housing", amount: "0", icon: "🏠" },
+    { id: "Other", name: "Other", amount: "0", icon: "📦" },
+  ];
+
+  const [categories, setCategories] = useState(defaultCategories);
 
   useEffect(() => {
     loadBudget();
@@ -45,10 +52,10 @@ const Planning = () => {
 
   const loadBudget = async () => {
     try {
-      const savedBudget = await AsyncStorage.getItem("MONTHLY_BUDGET");
+      const result = await localDb.getFirstAsync("SELECT amount FROM budget_monthly WHERE id = 1");
 
-      if (savedBudget !== null) {
-        setMonthlyBudget(savedBudget);
+      if (result) {
+        setMonthlyBudget(result.amount.toString());
       }
     } catch (error) {
       console.log(error);
@@ -57,10 +64,19 @@ const Planning = () => {
 
   const loadCategories = async () => {
     try {
-      const savedCategories = await AsyncStorage.getItem("CATEGORY_BUDGETS");
+      const results = await localDb.getAllAsync("SELECT * FROM budget_category");
 
-      if (savedCategories !== null) {
-        setCategories(JSON.parse(savedCategories));
+      if (results && results.length > 0) {
+        const mergedCategories = defaultCategories.map(cat => {
+          const found = results.find(r => r.category === cat.id);
+          if (found) {
+            return { ...cat, amount: found.amount.toString() };
+          }
+          return cat;
+        });
+        setCategories(mergedCategories);
+      } else {
+        setCategories(defaultCategories);
       }
     } catch (error) {
       console.log(error);
@@ -69,7 +85,7 @@ const Planning = () => {
 
   const handleSaveBudget = async () => {
     try {
-      await AsyncStorage.setItem("MONTHLY_BUDGET", monthlyBudget);
+      await localDb.runAsync("INSERT OR REPLACE INTO budget_monthly (id, amount) VALUES (1, ?)", Number(monthlyBudget));
 
       alert("Budget berhasil disimpan");
     } catch (error) {
@@ -79,10 +95,9 @@ const Planning = () => {
 
   const handleSaveCategories = async () => {
     try {
-      await AsyncStorage.setItem(
-        "CATEGORY_BUDGETS",
-        JSON.stringify(categories),
-      );
+      for (const cat of categories) {
+        await localDb.runAsync("INSERT OR REPLACE INTO budget_category (category, amount) VALUES (?, ?)", cat.id, Number(cat.amount));
+      }
 
       alert("Kategori berhasil disimpan");
     } catch (error) {
