@@ -5,8 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 
 import { Colors } from '../constants/Colors'
-import { useLocalSearchParams, router } from 'expo-router'
+import { useLocalSearchParams, router, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
+import { getDynamicGradient } from '../database/localDb'
 
 
 const category = () => {
@@ -14,6 +16,13 @@ const category = () => {
     const [modalVisible, setModalVisible] = useState(false)
     const [keterangan, setKeterangan] = useState("")
     const [kategori, setKategori] = useState("")
+    const [bgGradient, setBgGradient] = useState(['#00057aff', '#131d32'])
+
+    useFocusEffect(
+        React.useCallback(() => {
+            setBgGradient(getDynamicGradient())
+        }, [])
+    )
 
     const formattedAmount = amount ? Number(amount).toLocaleString('id-ID') : '0';
 
@@ -55,7 +64,6 @@ const category = () => {
     const handleSubmitLocal = async () => {
         try {
             await localDb.runAsync('INSERT INTO pengeluaran (Nominal, Kategori, Keterangan) VALUES (?, ?, ?)', Number(amount), kategori, keterangan)
-            Alert.alert("Success", "Expense added successfully");
             router.back();
         } catch (error) {
             console.log(error.message)
@@ -114,7 +122,7 @@ const category = () => {
                     </View>
                 </View>
             </Modal>
-            <View style={styles.container}>
+            <LinearGradient colors={bgGradient} style={styles.container}>
 
                 <View style={styles.headerRow}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -150,7 +158,7 @@ const category = () => {
                     ))}
                 </ScrollView>
 
-            </View >
+            </LinearGradient>
         </SafeAreaView>
     )
 }
@@ -160,11 +168,10 @@ export default category
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: Colors.primary,
+        backgroundColor: '#131d32', // fallback or bottom color
     },
     container: {
         flex: 1,
-        backgroundColor: Colors.primary,
         paddingHorizontal: 24,
         paddingTop: 16,
     },
