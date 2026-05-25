@@ -1,15 +1,14 @@
-import { useFocusEffect, router } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
-import { localDb, getDynamicGradient } from '../../database/localDb';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { getDynamicGradient, localDb } from '../../database/localDb';
 
 const { width } = Dimensions.get('window');
-const SLIDE_WIDTH = width - 32; // Lebar layar dikurangi margin horizontal
+const SLIDE_WIDTH = width - 32; 
 
 
 
-// Mapping angka bulan ke nama bulan singkat
 const MONTH_NAMES = {
   '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', '05': 'Mei', '06': 'Jun',
   '07': 'Jul', '08': 'Ags', '09': 'Sep', '10': 'Okt', '11': 'Nov', '12': 'Des'
@@ -19,14 +18,14 @@ const Dashboard = () => {
   const [monthlyExpense, setMonthlyExpense] = useState(0);
   const [lastMonthExpense, setLastMonthExpense] = useState(0);
   const [categoriesData, setCategoriesData] = useState([]);
-  const [monthlyTrendData, setMonthlyTrendData] = useState([]); // State untuk Bar Chart Bulanan
+  const [monthlyTrendData, setMonthlyTrendData] = useState([]); 
   const [budgetTarget, setBudgetTarget] = useState(0);
   const [categoryBudgets, setCategoryBudgets] = useState({});
   const [bgGradient, setBgGradient] = useState(['#00057aff', '#131d32']);
 
   const formatRupiah = (angka) => 'Rp ' + Math.floor(angka).toLocaleString('id-ID');
 
-  // Format angka singkat untuk label diagram batang (Contoh: 1.5 Jt / 500K)
+  
   const formatShortRupiah = (angka) => {
     if (angka >= 1000000) return (angka / 1000000).toFixed(1) + 'Jt';
     if (angka >= 1000) return (angka / 1000).toFixed(0) + 'K';
@@ -45,14 +44,14 @@ const Dashboard = () => {
       const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
       let lastMonthYear = now.getFullYear();
-      let lastMonthNum = now.getMonth(); // 0 is January, previous is Dec
+      let lastMonthNum = now.getMonth(); // 0 januari, previous dec
       if (lastMonthNum === 0) {
         lastMonthNum = 12;
         lastMonthYear -= 1;
       }
       const lastMonthStr = `${lastMonthYear}-${String(lastMonthNum).padStart(2, '0')}`;
 
-      // 1. Pengeluaran Bulan Ini
+      
       const thisMonthResult = localDb.getAllSync(`
         SELECT SUM(Nominal) as total FROM pengeluaran 
         WHERE strftime('%Y-%m', created_at, 'localtime') = '${currentMonthStr}'
@@ -60,7 +59,7 @@ const Dashboard = () => {
       const totalThisMonth = thisMonthResult[0]?.total || 0;
       setMonthlyExpense(totalThisMonth);
 
-      // 2. Pengeluaran Bulan Lalu
+      
       const lastMonthResult = localDb.getAllSync(`
         SELECT SUM(Nominal) as total FROM pengeluaran 
         WHERE strftime('%Y-%m', created_at, 'localtime') = '${lastMonthStr}'
@@ -68,7 +67,7 @@ const Dashboard = () => {
       const totalLastMonth = lastMonthResult[0]?.total || 0;
       setLastMonthExpense(totalLastMonth);
 
-      // 3. Distribusi per Kategori Bulan Ini
+      
       const distributionResult = localDb.getAllSync(`
         SELECT Kategori, SUM(Nominal) as totalNominal FROM pengeluaran
         WHERE strftime('%Y-%m', created_at, 'localtime') = '${currentMonthStr}'
@@ -77,7 +76,7 @@ const Dashboard = () => {
       `);
       setCategoriesData(distributionResult || []);
 
-      // 4. Data Trend Bulanan untuk Bar Chart (Ambil max 6 bulan terakhir)
+      
       const trendResult = localDb.getAllSync(`
         SELECT strftime('%m', created_at, 'localtime') as monthNum, SUM(Nominal) as total 
         FROM pengeluaran 
@@ -85,14 +84,14 @@ const Dashboard = () => {
         ORDER BY strftime('%Y-%m', created_at, 'localtime') DESC
         LIMIT 6
       `);
-      // Reverse array agar urutannya kronologis (Kiri=Lama, Kanan=Baru)
+      
       setMonthlyTrendData(trendResult.reverse() || []);
 
-      // 5. Budget bulanan
+      // Budget bulanan
       const budgetResult = localDb.getFirstSync("SELECT amount FROM budget_monthly WHERE id = 1");
       if (budgetResult) setBudgetTarget(budgetResult.amount);
 
-      // 6. Limit per kategori
+      // Limit per kategori
       const catBudgetResult = localDb.getAllSync("SELECT * FROM budget_category");
       const catBudgetMap = {};
       catBudgetResult.forEach(item => {
@@ -208,7 +207,7 @@ const Dashboard = () => {
         </View>
       </View>
 
-      {/* SECTION BAWAH: SLIDER/CAROUSEL EXPENSE ANALYTICS */}
+      {/* SLIDER/CAROUSEL EXPENSE ANALYTICS */}
       <View style={styles.bottomSliderContainer}>
         <View style={styles.sliderHeaderRow}>
           <Text style={styles.sectionTitleBlack}>Analytics (Swipe ↔)</Text>
@@ -223,7 +222,7 @@ const Dashboard = () => {
           decelerationRate="fast"
         >
 
-          {/* SLIDE 1: EXPENSE DISTRIBUTION (HORIZONTAL SEGMENTED BAR) */}
+          {/* EXPENSE DISTRIBUTION */}
           <View style={styles.slidePage}>
             <Text style={styles.slideTitle}>Category Distribution</Text>
 
@@ -236,14 +235,14 @@ const Dashboard = () => {
                 {categoriesData.map((item, index) => {
                   const limit = categoryBudgets[item.Kategori] || 0;
                   const percentage = limit > 0 ? (item.totalNominal / limit) * 100 : 0;
-                  // Jika limit 0 tapi ada pengeluaran, anggap 100% overlimit
+                  
                   const displayPercentage = limit === 0 && item.totalNominal > 0 ? 100 : percentage;
 
-                  let barColor = '#3b82f6'; // Biru (< 50%)
+                  let barColor = '#3b82f6'; 
                   if (displayPercentage >= 75) {
-                    barColor = '#ef4444'; // Merah
+                    barColor = '#ef4444'; 
                   } else if (displayPercentage >= 50) {
-                    barColor = '#facc15'; // Kuning
+                    barColor = '#facc15'; 
                   }
 
                   return (
@@ -274,7 +273,7 @@ const Dashboard = () => {
             )}
           </View>
 
-          {/* SLIDE 2: MONTHLY TREND (BAR CHART) */}
+          {/* TREND PER BULAN  */}
           <View style={styles.slidePage}>
             <Text style={styles.slideTitle}>Monthly Expenses Trend</Text>
 
@@ -336,12 +335,12 @@ const styles = StyleSheet.create({
   },
   sectionTitleBlack: { fontSize: 13, fontWeight: 'bold', color: '#1f2937', marginBottom: 4 },
 
-  /* Month Compare Mini */
+  
   compareLabel: { fontSize: 10, color: '#64748b', marginBottom: 2 },
   compareValue: { fontSize: 13, fontWeight: 'bold', color: '#1f2937' },
   diffBox: { padding: 8, borderRadius: 8, marginTop: 4 },
 
-  /* Budget Target */
+  
   budgetProgressRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, alignItems: 'flex-end' },
   spendingLabel: { fontSize: 11, color: '#94a3b8' },
   percentageText: { fontSize: 16, fontWeight: 'bold', color: '#111827' },
@@ -356,7 +355,7 @@ const styles = StyleSheet.create({
   manageBtn: { borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 8, paddingVertical: 8, alignItems: 'center', marginTop: 14 },
   manageBtnText: { fontSize: 11, fontWeight: '600', color: '#4b5563' },
 
-  /* SLIDER SECTION BAWAH */
+  
   bottomSliderContainer: {
     backgroundColor: '#fff',
     marginHorizontal: 16,
@@ -375,7 +374,7 @@ const styles = StyleSheet.create({
   },
   slideTitle: { fontSize: 11, color: '#64748b', fontWeight: '500', marginBottom: 10 },
 
-  /* Horizontal Segmented Bar (Distribution) */
+  
   segmentedBarContainer: {
     height: 14,
     width: '100%',
@@ -394,7 +393,6 @@ const styles = StyleSheet.create({
   legendPercentText: { fontSize: 12, fontWeight: 'bold', color: '#1f2937' },
   legendSubValue: { fontSize: 10, color: '#94a3b8', fontWeight: 'normal' },
 
-  /* Bar Chart (Monthly Trend) */
   barChartContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',

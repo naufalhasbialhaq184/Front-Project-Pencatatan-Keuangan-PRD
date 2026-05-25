@@ -1,5 +1,5 @@
-import { Stack, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
 import { View } from "react-native";
 
 export default function RootLayout() {
@@ -30,14 +30,14 @@ export default function RootLayout() {
         options={{
           headerShown: false,
           title: "Expense",
-          tabBarLabel: () => null, // Sembunyikan text agar terlihat bersih sebagai tombol melayang
+          tabBarLabel: () => null, 
           tabBarIcon: () => (
             <View style={{
-              top: -15, // Membuat posisi melayang ke atas
+              top: -15, 
               width: 60,
               height: 60,
               borderRadius: 30,
-              backgroundColor: "#2196F3", // Warna biru standar, sesuaikan jika ada warna khusus
+              backgroundColor: "#2196F3", 
               justifyContent: "center",
               alignItems: "center",
               shadowColor: "#000",

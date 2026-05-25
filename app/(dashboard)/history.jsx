@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar'
 import { useCallback, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { localDb, getDynamicGradient } from '../../database/localDb';
+import { getDynamicGradient, localDb } from '../../database/localDb'
 
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -73,13 +73,13 @@ const History = () => {
     try {
       const data = await localDb.getAllAsync('SELECT * FROM pengeluaran ORDER BY created_at DESC');
 
-      // Calculate sums for stats
+
       const today = new Date();
       let todaySum = 0;
       let weekSum = 0;
       let monthSum = 0;
 
-      // Get start of the current week (Monday) and end of the week
+  
       const currentDay = today.getDay();
       const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1;
       const startOfWeek = new Date(today);
@@ -97,7 +97,6 @@ const History = () => {
 
         const nominal = Number(item.Nominal) || 0;
 
-        // Today's Expense
         if (
           d.getDate() === today.getDate() &&
           d.getMonth() === today.getMonth() &&
@@ -106,12 +105,11 @@ const History = () => {
           todaySum += nominal;
         }
 
-        // Weekly Expense
+
         if (d >= startOfWeek && d < endOfWeek) {
           weekSum += nominal;
         }
 
-        // Monthly Expense
         if (
           d.getMonth() === today.getMonth() &&
           d.getFullYear() === today.getFullYear()
@@ -124,7 +122,7 @@ const History = () => {
       setWeeklyExpense(weekSum);
       setTodaysExpense(todaySum);
 
-      // Group history items by date
+
       const grouped = data.reduce((acc, curr) => {
         const dateStr = formatDate(curr.created_at);
         if (!acc[dateStr]) acc[dateStr] = [];
@@ -153,7 +151,7 @@ const History = () => {
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
       <StatusBar style="dark" />
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Dark Blue Gradient Header container with the 3 boxes */}
+        {}
         <LinearGradient
           colors={bgGradient}
           style={styles.headerContainer}
@@ -162,7 +160,7 @@ const History = () => {
           <Text style={styles.headerSubtitle}></Text>
 
           <View style={styles.metricsContainer}>
-            {/* Monthly Expense Card */}
+            {/* Expense card bulanan */}
             <View style={styles.metricCard}>
               <Text style={styles.metricLabel}>{"Monthly\nExpense"}</Text>
               <Text style={[styles.metricValue, { color: '#cbd5e1' }]}>
@@ -170,7 +168,7 @@ const History = () => {
               </Text>
             </View>
 
-            {/* Weekly Expense Card */}
+            {/* Expense card mingguan */}
             <View style={styles.metricCard}>
               <Text style={styles.metricLabel}>{"Weekly\nExpense"}</Text>
               <Text style={[styles.metricValue, { color: '#cbd5e1' }]}>
@@ -178,7 +176,7 @@ const History = () => {
               </Text>
             </View>
 
-            {/* Today's Expense Card */}
+            {/* Expense card hari ini */}
             <View style={styles.metricCard}>
               <Text style={styles.metricLabel}>{"Today's\nExpense"}</Text>
               <Text style={[styles.metricValue, { color: '#cbd5e1' }]}>
@@ -188,7 +186,7 @@ const History = () => {
           </View>
         </LinearGradient>
 
-        {/* List of transactions below */}
+        {/* List transaksi */}
         <View style={styles.listContainer}>
           {historyData.map((group, index) => (
             <View key={index} style={styles.groupContainer}>
