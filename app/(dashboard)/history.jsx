@@ -157,7 +157,7 @@ const History = () => {
           style={styles.headerContainer}
         >
           <Text style={styles.headerTitle}>Transaction History</Text>
-          <Text style={styles.headerSubtitle}></Text>
+          <Text style={styles.headerSubtitle}>Melihat Riwayat Pengeluaran</Text>
 
           <View style={styles.metricsContainer}>
             {/* Expense card bulanan */}
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#131d32',
     paddingHorizontal: 20,
     paddingTop: 24,
-    paddingBottom: 32,
+    paddingBottom: 20,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
   },
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginBottom: 4,
+    marginBottom: 0,
   },
   headerSubtitle: {
     fontSize: 14,

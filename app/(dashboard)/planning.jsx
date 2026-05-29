@@ -10,6 +10,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
 } from "react-native";
 
 const tabs = ["Budget", "Categories"];
@@ -20,17 +21,17 @@ const Planning = () => {
   const [monthlyBudget, setMonthlyBudget] = useState("0");
 
   const defaultCategories = [
-    { id: "Food", name: "Food", amount: "0", icon: "🍔" },
-    { id: "Transport", name: "Transport", amount: "0", icon: "🚗" },
-    { id: "Utilities", name: "Utilities", amount: "0", icon: "💡" },
-    { id: "Entertainment", name: "Entertainment", amount: "0", icon: "🎮" },
-    { id: "Health", name: "Health", amount: "0", icon: "🏥" },
-    { id: "Shopping", name: "Shopping", amount: "0", icon: "🛍️" },
-    { id: "Education", name: "Education", amount: "0", icon: "📚" },
-    { id: "Technology", name: "Technology", amount: "0", icon: "💻" },
-    { id: "Gift", name: "Gift", amount: "0", icon: "🎁" },
-    { id: "Housing", name: "Housing", amount: "0", icon: "🏠" },
-    { id: "Other", name: "Other", amount: "0", icon: "📦" },
+    { id: "Food", name: "Food", amount: "0", icon: require("../../assets/images/category/foods.png") },
+    { id: "Transport", name: "Transport", amount: "0", icon: require("../../assets/images/category/transport.png") },
+    { id: "Utilities", name: "Utilities", amount: "0", icon: require("../../assets/images/category/utilities.png") },
+    { id: "Entertainment", name: "Entertainment", amount: "0", icon: require("../../assets/images/category/entertainment.png") },
+    { id: "Health", name: "Health", amount: "0", icon: require("../../assets/images/category/health.png") },
+    { id: "Shopping", name: "Shopping", amount: "0", icon: require("../../assets/images/category/shopping.png") },
+    { id: "Education", name: "Education", amount: "0", icon: require("../../assets/images/category/education.png") },
+    { id: "Technology", name: "Technology", amount: "0", icon: require("../../assets/images/category/technology.png") },
+    { id: "Gift", name: "Gift", amount: "0", icon: require("../../assets/images/category/gift.png") },
+    { id: "Housing", name: "Housing", amount: "0", icon: require("../../assets/images/category/housing.png") },
+    { id: "Other", name: "Other", amount: "0", icon: require("../../assets/images/category/other.png") },
   ];
 
   const [categories, setCategories] = useState(defaultCategories);
@@ -166,8 +167,7 @@ const Planning = () => {
                   <Text style={styles.cardTitle}>Monthly Budget Limit</Text>
 
                   <Text style={styles.cardSubtitle}>
-                    Tetapkan batas maksimum pengeluaran bulanan agar keuangan
-                    tetap terkontrol dan sesuai rencana.
+                    Tetapkan batas maksimum pengeluaran bulanan.
                   </Text>
                 </View>
               </View>
@@ -184,14 +184,14 @@ const Planning = () => {
 
               <View style={styles.tipBox}>
                 <Text style={styles.tipText}>
-                  💡 Tip: Disarankan menjaga total pengeluaran di bawah 80%
+                  Tip: Disarankan menjaga total pengeluaran di bawah 80%
                   pendapatan bulanan agar tetap memiliki ruang menabung.
                 </Text>
               </View>
 
               <View style={styles.benefitBox}>
                 <Text style={styles.benefitText}>
-                  ✅ Manfaat: Membantu Anda mengontrol pengeluaran dan
+                  Fitur ini Membantu Anda mengontrol pengeluaran dan
                   memastikan keuangan tetap sesuai rencana anggaran yang telah
                   ditetapkan.
                 </Text>
@@ -202,7 +202,7 @@ const Planning = () => {
                 onPress={handleSaveBudget}
               >
                 <Text style={styles.saveButtonText}>
-                  💾 Simpan Batas Budget
+                  Simpan Batas Budget
                 </Text>
               </TouchableOpacity>
             </View>
@@ -222,8 +222,7 @@ const Planning = () => {
                   <Text style={styles.cardTitle}>Category Budgets</Text>
 
                   <Text style={styles.cardSubtitle}>
-                    Atur batas pengeluaran untuk setiap kategori agar
-                    pengelolaan anggaran lebih terkendali.
+                    Atur batas pengeluaran untuk setiap kategori
                   </Text>
                 </View>
               </View>
@@ -232,7 +231,7 @@ const Planning = () => {
                 <View key={item.id} style={styles.categoryRow}>
                   <View style={styles.categoryLeft}>
                     <View style={styles.categoryIcon}>
-                      <Text>{item.icon}</Text>
+                      <Image source={item.icon} style={styles.categoryIconImage} resizeMode="contain" />
                     </View>
 
                     <Text style={styles.categoryName}>{item.name}</Text>
@@ -264,7 +263,7 @@ const Planning = () => {
                 onPress={handleSaveCategories}
               >
                 <Text style={styles.saveButtonText}>
-                  💾 Simpan Batas Kategori
+                  Simpan Batas Kategori
                 </Text>
               </TouchableOpacity>
             </View>
@@ -455,6 +454,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
+  },
+
+  categoryIconImage: {
+    width: 24,
+    height: 24,
   },
 
   categoryName: {
